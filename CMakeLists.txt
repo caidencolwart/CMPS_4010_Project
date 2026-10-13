@@ -22,12 +22,12 @@ endif()
 find_package(pybind11 REQUIRED)
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/ASL_Interpreter.py"
+    "${CMAKE_CURRENT_SOURCE_DIR}/python/ASL_Interpreter.py"
     "${CMAKE_CURRENT_BINARY_DIR}/asl_interpreter.py"
     COPYONLY
 )
 
-add_executable(ASL_App main.cpp)
+add_executable(ASL_App src/main.cpp)
 
 target_compile_definitions(ASL_App PRIVATE
     ASL_APP_PYTHON_DIR="${CMAKE_CURRENT_BINARY_DIR}"
