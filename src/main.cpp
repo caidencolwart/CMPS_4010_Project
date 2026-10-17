@@ -66,29 +66,26 @@ int main(int argc, char* argv[]) {
 
             py::array_t<uint8_t> input_array = mat_to_numpy(frame);
             py::object python_result = predict_func(input_array);
-
+            py::handle image_result = python_result;
             if (py::isinstance<py::tuple>(python_result)) {
                 py::tuple result = py::cast<py::tuple>(python_result);
-                if (result.size() >= 2) {
-                    py::handle annotated_handle = result[0];
-
-                    py::array_t<uint8_t> annotated_array = py::array_t<uint8_t>::ensure(annotated_handle);
-                    if (annotated_array && annotated_array.ndim() == 3 && annotated_array.shape(2) == 3) {
-                        cv::Mat annotated = cv::Mat(
-                            static_cast<int>(annotated_array.shape(0)),
-                            static_cast<int>(annotated_array.shape(1)),
-                            CV_8UC3,
-                            annotated_array.mutable_data()
-                        );
-                        frame = annotated.clone();
-                    }
+                if (result.size() >= 1) {
+                    image_result = result[0];
                 }
             }
-            else {
-                std::string prediction = py::cast<std::string>(python_result);
-                cv::putText(frame, prediction,
-                    cv::Point(20, 50), cv::FONT_HERSHEY_SIMPLEX,
-                    1.0, cv::Scalar(0, 255, 0), 2);
+
+            py::array_t<uint8_t> annotated_array = py::array_t<uint8_t>::ensure(image_result);
+            if (annotated_array && annotated_array.ndim() == 3 &&
+                annotated_array.shape(0) == frame.rows &&
+                annotated_array.shape(1) == frame.cols &&
+                annotated_array.shape(2) == 3) {
+                cv::Mat annotated(
+                    frame.rows,
+                    frame.cols,
+                    CV_8UC3,
+                    annotated_array.mutable_data()
+                );
+                annotated.copyTo(frame);
             }
 
             cv::imshow("ASL Interpreter", frame);
@@ -101,7 +98,7 @@ int main(int argc, char* argv[]) {
     }
     catch (py::error_already_set& e) {
         std::cout << "\n================ PYTHON ERROR ================\n";
-        PyErr_Print(); // Forces native Python to print the raw traceback
+        PyErr_Print();
         std::cout << e.what() << std::endl;
         std::cout << "==============================================\n\n";
         return 1;

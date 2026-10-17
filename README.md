@@ -1,9 +1,9 @@
 # ASL Interpreter Webcam Setup
 
 This starter application captures webcam frames in C++ with OpenCV and passes
-them to Python for MediaPipe hand detection. It currently reports **Hand
-detected** or **No hand**; recognizing ASL letters or words requires a separate
-trained classifier and is not included yet.
+them to Python for MediaPipe hand detection. Drop a Teachable Machine ONNX
+classifier into `python/models/` to show the predicted letter and a confidence
+bar on the webcam window.
 
 ## Requirements
 
@@ -18,6 +18,23 @@ Install the Python packages using the same Python interpreter CMake will embed:
 ```powershell
 py -3.14 -m pip install -r requirements.txt
 ```
+
+## Add the ASL ONNX model
+
+1. Export your Teachable Machine image model as **TensorFlow** / Keras, then
+   convert it to ONNX (`tf2onnx`), or export / convert to `asl_classifier.onnx`.
+2. Put these files in `python/models/`:
+   - `asl_classifier.onnx` (or `model.onnx`)
+   - `labels.txt` from Teachable Machine (`0 A`, `1 B`, ...)
+3. Install the extra Python package if you have not already:
+
+```powershell
+py -3.14 -m pip install -r requirements.txt
+```
+
+4. Rebuild so CMake copies `python/models/` into `out/build/x64-debug/models/`.
+
+Until those files are present, the app still runs and only shows hand tracking.
 
 ## Download the hand model
 

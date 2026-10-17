@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(OpenCV_DIR "C:/OpenCV/opencv/build" CACHE PATH "Path to OpenCVConfig.cmake")
 find_package(OpenCV REQUIRED)
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(Python3 3.14 COMPONENTS Interpreter Development REQUIRED)
 
 execute_process(
     COMMAND "${Python3_EXECUTABLE}" -m pybind11 --cmakedir
@@ -28,6 +28,17 @@ configure_file(
 )
 
 add_executable(ASL_App src/main.cpp)
+
+add_custom_command(TARGET ASL_App POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_CURRENT_SOURCE_DIR}/python/ASL_Interpreter.py"
+        "${CMAKE_CURRENT_BINARY_DIR}/asl_interpreter.py"
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+        "${CMAKE_CURRENT_BINARY_DIR}/models"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/python/models"
+        "${CMAKE_CURRENT_BINARY_DIR}/models"
+)
 
 target_compile_definitions(ASL_App PRIVATE
     ASL_APP_PYTHON_DIR="${CMAKE_CURRENT_BINARY_DIR}"
